@@ -164,7 +164,7 @@ function collectStar(player, starContainer) {
 }
 
 function addStar(msg) {
-  console.log("Adding star ", msg);
+  //console.log("Adding star ", msg);
   let scene = this.myGame.scene.getScene("default");
 
   const dingSnd = scene.sound.add("ding").setVolume(0.1)

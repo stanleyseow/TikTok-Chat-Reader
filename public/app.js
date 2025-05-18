@@ -65,7 +65,7 @@ function updateRoomStats() {
 }
 
 function generateUsernameLink(data) {
-    return `<a class="usernamelink" href="https://www.tiktok.com/@${data.uniqueId}" target="_blank">${data.uniqueId}</a>`;
+    return `<a class="usernamelink" href="https://www.tiktok.com/@${data.user.uniqueId}" target="_blank">${data.user.uniqueId}</a>`;
 }
 
 function isPendingStreak(data) {
@@ -89,7 +89,7 @@ function addChatItem(color, data, text, summarize) {
 
     container.append(`
         <div class=${summarize ? 'temporary' : 'static'}>
-            <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+            <img class="miniprofilepicture" src="${data.user.profilePicture.urls[0]}">
             <span>
                 <b>${displayName}:</b> 
                 <span style="color:${color}">${sanitize(text)}</span>
@@ -113,21 +113,21 @@ function addGiftItem(data) {
         container.find('div').slice(0, 100).remove();
     }
 
-    let streakId = data.userId.toString() + '_' + data.giftId;
+    let streakId = data.user.userId.toString() + '_' + data.giftId;
 
     let html = `
         <div data-streakid=${isPendingStreak(data) ? streakId : ''}>
-            <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+            <img class="miniprofilepicture" src="${data.user.profilePicture.urls[0]}">
             <span>
-                <b>${generateUsernameLink(data)}:</b> <span>${data.describe}</span><br>
+                <b>${generateUsernameLink(data)}:</b> <span>${data.user.nickname}</span><br>
                 <div>
                     <table>
                         <tr>
-                            <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
+                            <td><img class="gifticon" src="${data.giftDetails.giftImage.giftPictureUrl}"></td>
                             <td>
-                                <span>Name: <b>${data.giftName}</b> (ID:${data.giftId})<span><br>
+                                <span>Name: <b>${data.giftDetails.giftName}</b> (ID:${data.giftId})<span><br>
                                 <span>Repeat: <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b><span><br>
-                                <span>Cost: <b>${(data.diamondCount * data.repeatCount).toLocaleString()} Diamonds</b><span>
+                                <span>Cost: <b>${(data.giftDetails.diamondCount * data.repeatCount).toLocaleString()} Diamonds</b><span>
                             </td>
                         </tr>
                     </tabl>
@@ -209,6 +209,7 @@ connection.on('chat', (msg) => {
 
 // New gift received
 connection.on('gift', (data) => {
+    console.log("===> gift: ", data); 
     if (!isPendingStreak(data) && data.diamondCount > 0) {
         diamondsCount += (data.diamondCount * data.repeatCount);
         // Add a bomb in Phaser

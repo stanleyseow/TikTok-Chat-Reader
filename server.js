@@ -29,8 +29,11 @@ io.on('connection', (socket) => {
         if (typeof options === 'object' && options) {
             delete options.requestOptions;
             delete options.websocketOptions;
+            options.enableExtendedGiftInfo = true;
         } else {
-            options = {};
+            options = {
+                enableExtendedGiftInfo: true
+            };
         }
 
         // Session ID in .env file is optional
