@@ -226,7 +226,7 @@ connection.on('gift', (data) => {
 connection.on('social', (data) => {
     if (window.settings.showFollows === "0") return;
 
-    let color = data.displayType.includes('follow') ? '#ff005e' : '#2fb816';
+    let color = data.displayType?.toLowerCase().includes('follow') ? '#ff005e' : '#2fb816';
     addChatItem(color, data, data.label.replace('{0:user}', ''));
 })
 
