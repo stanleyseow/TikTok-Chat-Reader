@@ -16,6 +16,9 @@
 
     <script src="connection.js"></script>
     <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.0/dist/phaser.js"></script>
+    <script src="phaser.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <script>
         function generateOverlay() {
@@ -31,46 +34,41 @@
     </script>
 </head>
 <body>
-    <div class="head">
-        <h1>TikTok LIVE Chat Reader</h1>
-        <span class="subTitle">Source: <a href="https://github.com/zerodytrash/TikTok-Chat-Reader">https://github.com/zerodytrash/TikTok-Chat-Reader</a></span>      
+
+    <div class="inputFields mx-1 my-1 bg-purple-300">
+        Enter the <b>@username</b> of a user who is currently live: 
+        <input type="text" id="uniqueIdInput" class="bg-purple-200 text-black px-3 py-2 rounded-md border border-purple-400">
+        <input type="button" id="connectButton" value="Connect" class="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-4 py-2 rounded-md">
+        <a href="#" onclick="generateOverlay()">Generate Overlay</a>
     </div>
 
     <div>
-        A chat reader for <a href="https://www.tiktok.com/live">TikTok LIVE</a> utilizing <a href="https://github.com/zerodytrash/TikTok-Live-Connector">TikTok-Live-Connector</a> and <a href="https://socket.io/">Socket.IO</a> to forward the data to the client. More Tools available at <a href="https://tikfinity.zerody.one/" target="_blank">TikFinity</a>.
+        <div class="bg-blue-600 text-left text-style:italic" id="stateText"></div>
+        <div class="bg-cyan-600 text-align:left" id="roomStats"></div>
     </div>
 
-    <div class="inputFields">
-        <p>Enter the <b>@username</b> of a user who is currently live:</p>
-        <input type="text" id="uniqueIdInput">
-        <input type="button" id="connectButton" value="connect">
-        <a href="#" onclick="generateOverlay()">Generate Overlay URL</a>
-    </div>
+    <div class="container flex">
+    
 
-    <table class="splitstatetable">
+        <div id="game-container" class="flex-column mx-1 my-1"></div>
+        <div class="flex-column mx-1 my-1">
+       
+        <table  class="splitchattable">
         <tr>
             <td>
-                <pre id="stateText"></pre>
-            </td>
-            <td>
-                <div id="roomStats"></div>
-            </td>
-        </tr>
-    </table>
-
-    <table class="splitchattable">
-        <tr>
-            <td>
-                <div class="chatcontainer">
+                <div class="chatcontainer bg-slate-200">
                     <h3 class="containerheader">Chats</h3>
                 </div>
             </td>
             <td>
-                <div class="giftcontainer">
+                <div class="giftcontainer bg-slate-400">
                     <h3 class="containerheader">Gifts</h3>
                 </div>
             </td>
         </tr>
-    </table>
+        </table>
+        </div>    
+    </div>
+
 </body>
 </html>

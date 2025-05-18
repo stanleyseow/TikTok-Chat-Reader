@@ -17,7 +17,8 @@ $(document).ready(() => {
             connect();
         }
     });
-
+    
+    //window.settings.username = "@tv_asahi_news"
     if (window.settings.username) connect();
 })
 
@@ -81,13 +82,16 @@ function addChatItem(color, data, text, summarize) {
         container.find('div').slice(0, 200).remove();
     }
 
-    container.find('.temporary').remove();;
+    container.find('.temporary').remove();
+
+    // Use nickname if available, fallback to uniqueId
+    const displayName = data.user.nickname || data.user.uniqueId || 'Anonymous';
 
     container.append(`
         <div class=${summarize ? 'temporary' : 'static'}>
             <img class="miniprofilepicture" src="${data.profilePictureUrl}">
             <span>
-                <b>${generateUsernameLink(data)}:</b> 
+                <b>${displayName}:</b> 
                 <span style="color:${color}">${sanitize(text)}</span>
             </span>
         </div>
@@ -158,13 +162,17 @@ connection.on('roomUser', (msg) => {
 // like stats
 connection.on('like', (msg) => {
     if (typeof msg.totalLikeCount === 'number') {
+        
+        // Drop a star randomly in Phaser
+        addStar(msg)
+
         likeCount = msg.totalLikeCount;
         updateRoomStats();
     }
 
     if (window.settings.showLikes === "0") return;
 
-    if (typeof msg.likeCount === 'number') {
+    if (typeof msg.likeCount === 'number' && msg.label) {
         addChatItem('#447dd4', msg, msg.label.replace('{0:user}', '').replace('likes', `${msg.likeCount} likes`))
     }
 })
@@ -172,6 +180,7 @@ connection.on('like', (msg) => {
 // Member join
 let joinMsgDelay = 0;
 connection.on('member', (msg) => {
+
     if (window.settings.showJoins === "0") return;
 
     let addDelay = 250;
@@ -182,21 +191,28 @@ connection.on('member', (msg) => {
 
     setTimeout(() => {
         joinMsgDelay -= addDelay;
-        addChatItem('#21b2c2', msg, 'joined', true);
+        // Use nickname if available, fallback to uniqueId
+        //const displayName = msg.nickname || msg.uniqueId || 'Anonymous';
+        const joinMessage = `${msg.label || 'joined the live'}`;
+        addChatItem('#21b2c2', msg, joinMessage, true);
     }, joinMsgDelay);
 })
 
 // New chat comment received
 connection.on('chat', (msg) => {
+    console.log("===> chat: ", msg); 
+
     if (window.settings.showChats === "0") return;
 
-    addChatItem('', msg, msg.comment);
+    addChatItem('',msg , msg.comment);
 })
 
 // New gift received
 connection.on('gift', (data) => {
     if (!isPendingStreak(data) && data.diamondCount > 0) {
         diamondsCount += (data.diamondCount * data.repeatCount);
+        // Add a bomb in Phaser
+        addBomb(data)
         updateRoomStats();
     }
 

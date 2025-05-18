@@ -5,6 +5,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { TikTokConnectionWrapper, getGlobalConnectionCount } = require('./connectionWrapper');
 const { clientBlocked } = require('./limiter');
+const { WebcastEvent } = require('tiktok-live-connector');
 
 const app = express();
 const httpServer = createServer(app);
@@ -58,22 +59,24 @@ io.on('connection', (socket) => {
         tiktokConnectionWrapper.once('disconnected', reason => socket.emit('tiktokDisconnected', reason));
 
         // Notify client when stream ends
-        tiktokConnectionWrapper.connection.on('streamEnd', () => socket.emit('streamEnd'));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.STREAM_END, () => socket.emit(WebcastEvent.STREAM_END));
 
         // Redirect message events
-        tiktokConnectionWrapper.connection.on('roomUser', msg => socket.emit('roomUser', msg));
-        tiktokConnectionWrapper.connection.on('member', msg => socket.emit('member', msg));
-        tiktokConnectionWrapper.connection.on('chat', msg => socket.emit('chat', msg));
-        tiktokConnectionWrapper.connection.on('gift', msg => socket.emit('gift', msg));
-        tiktokConnectionWrapper.connection.on('social', msg => socket.emit('social', msg));
-        tiktokConnectionWrapper.connection.on('like', msg => socket.emit('like', msg));
-        tiktokConnectionWrapper.connection.on('questionNew', msg => socket.emit('questionNew', msg));
-        tiktokConnectionWrapper.connection.on('linkMicBattle', msg => socket.emit('linkMicBattle', msg));
-        tiktokConnectionWrapper.connection.on('linkMicArmies', msg => socket.emit('linkMicArmies', msg));
-        tiktokConnectionWrapper.connection.on('liveIntro', msg => socket.emit('liveIntro', msg));
-        tiktokConnectionWrapper.connection.on('emote', msg => socket.emit('emote', msg));
-        tiktokConnectionWrapper.connection.on('envelope', msg => socket.emit('envelope', msg));
-        tiktokConnectionWrapper.connection.on('subscribe', msg => socket.emit('subscribe', msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.ROOM_USER, msg => socket.emit(WebcastEvent.ROOM_USER, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.MEMBER, msg => socket.emit(WebcastEvent.MEMBER, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.CHAT, msg => socket.emit(WebcastEvent.CHAT, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.GIFT, msg => socket.emit(WebcastEvent.GIFT, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.SOCIAL, msg => socket.emit(WebcastEvent.SOCIAL, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.LIKE, msg => socket.emit(WebcastEvent.LIKE, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.QUESTION_NEW, msg => socket.emit(WebcastEvent.QUESTION_NEW, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.LINK_MIC_BATTLE, msg => socket.emit(WebcastEvent.LINK_MIC_BATTLE, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.LINK_MIC_ARMIES, msg => socket.emit(WebcastEvent.LINK_MIC_ARMIES, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.LIVE_INTRO, msg => socket.emit(WebcastEvent.LIVE_INTRO, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.EMOTE, msg => socket.emit(WebcastEvent.EMOTE, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.ENVELOPE, msg => socket.emit(WebcastEvent.ENVELOPE, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.SUBSCRIBE, msg => socket.emit(WebcastEvent.SUBSCRIBE, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.FOLLOW, msg => socket.emit(WebcastEvent.FOLLOW, msg));
+        tiktokConnectionWrapper.connection.on(WebcastEvent.SHARE, msg => socket.emit(WebcastEvent.SHARE, msg));
     });
 
     socket.on('disconnect', () => {

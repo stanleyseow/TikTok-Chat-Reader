@@ -1,6 +1,6 @@
 body {
     font-family:Arial, Helvetica, sans-serif;
-    min-width: 800px;
+    min-width: 400px;
 }
 
 h1 {
@@ -34,7 +34,7 @@ a {
 
 #roomStats {
     width: 100%;
-    text-align: right;
+    text-align: left;
 }
 
 #roomStats b {
@@ -42,7 +42,7 @@ a {
 }
 
 .splitchattable, .splitstatetable {
-    width: 100%;
+    width: 50%;
 }
 
 .splitstatetable td {
@@ -55,7 +55,7 @@ a {
 
 .chatcontainer, .giftcontainer, .eventcontainer {
     overflow-y: scroll;
-    height: calc(100vh - 240px);
+    height: 100vh;
     word-wrap: break-word;
 }
 
