@@ -224,10 +224,13 @@ connection.on('gift', (data) => {
 
 // share, follow
 connection.on('social', (data) => {
+    console.log("===> social: ", data);
     if (window.settings.showFollows === "0") return;
 
     let color = data.displayType?.toLowerCase().includes('follow') ? '#ff005e' : '#2fb816';
-    addChatItem(color, data, data.label.replace('{0:user}', ''));
+    // Add null check for data.label
+    const label = data.label ? data.label.replace('{0:user}', '') : '';
+    addChatItem(color, data, label);
 })
 
 connection.on('streamEnd', () => {
