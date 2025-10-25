@@ -55,7 +55,7 @@ a {
 
 .chatcontainer, .giftcontainer, .eventcontainer {
     overflow-y: scroll;
-    height: 100vh;
+    height: 80vh;
     word-wrap: break-word;
 }
 

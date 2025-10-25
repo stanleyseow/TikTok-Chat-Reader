@@ -30,6 +30,47 @@ var score = 0;
 var scoreText;
 var joyStick;
 var cursorKeys;
+// Cache to track profile pictures that are being loaded or have been loaded
+var profilePictureCache = {};
+// Cache to track gift images
+var giftImageCache = {};
+
+// Function to preload a profile picture
+function preloadProfilePicture(scene, userId, pictureUrl) {
+  // Create a unique key for this profile picture
+  const profileKey = 'profile_' + userId;
+  
+  // If already in cache or already loaded in textures, don't reload
+  if (profilePictureCache[profileKey] || scene.textures.exists(profileKey)) {
+    return profileKey;
+  }
+  
+  // Mark as being loaded in cache
+  profilePictureCache[profileKey] = 'loading';
+  
+  // Load the image
+  return new Promise((resolve, reject) => {
+    // Create an HTML Image element
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = function() {
+      // Add the loaded image to Phaser's texture manager
+      scene.textures.addImage(profileKey, img);
+      profilePictureCache[profileKey] = 'loaded';
+      resolve(profileKey);
+    };
+    
+    img.onerror = function() {
+      console.warn('Error loading profile picture for', userId);
+      profilePictureCache[profileKey] = 'error';
+      reject('Failed to load profile picture');
+    };
+    
+    // Start loading the image
+    img.src = pictureUrl;
+  });
+}
 
 function preload() {
   this.load.image("sky", "assets/sky.png");
@@ -163,6 +204,16 @@ function collectStar(player, starContainer) {
   scoreText.setText("Score: " + score);
 }
 
+function collectGift(player, container) {
+  container.destroy(true);
+  container.setVisible(false);
+
+  pingSnd.play();
+
+  //score += 1;
+  //scoreText.setText("Score: " + score);
+}
+
 function addStar(msg) {
   //console.log("Adding star ", msg);
   let scene = this.myGame.scene.getScene("default");
@@ -171,6 +222,13 @@ function addStar(msg) {
   dingSnd.play();
 
   let nickname = msg.user.nickname;
+  
+  // Handle profile picture which is an object with urls array
+  let profilePictureUrl = null;
+  if (msg.user.profilePicture && msg.user.profilePicture.urls && msg.user.profilePicture.urls.length > 0) {
+    // Get the first URL from the array (typically the smallest size)
+    profilePictureUrl = msg.user.profilePicture.urls[0].replace(/['"]+/g, '').trim();
+  }
 
   scene.star = starContainer = scene.add.container(Phaser.Math.Between(0, 800), 0);
   scene.physics.add.existing(starContainer);
@@ -187,8 +245,36 @@ function addStar(msg) {
       //backgroundColor: "#00000",
     })
     .setOrigin(0.5);
+    
+  // Create a star object (default)
   let starObj = scene.add.image(0, 0, "star");
+  
+  // If profile picture URL exists, try to load it
+  if (profilePictureUrl && msg.user.uniqueId) {
+    const profileKey = 'profile_' + msg.user.uniqueId;
+    
+    // Check if already in texture cache
+    if (scene.textures.exists(profileKey)) {
+      // Profile picture already loaded, use it directly
+      starObj.destroy();
+      starObj = scene.add.image(0, 0, profileKey).setDisplaySize(24, 24).setOrigin(0.5);
+    } else {
+      // Need to preload the profile picture
+      preloadProfilePicture(scene, msg.user.uniqueId, profilePictureUrl)
+        .then(textureKey => {
+          // Replace the star with the profile picture
+          starObj.destroy();
+          starObj = scene.add.image(0, 0, textureKey).setDisplaySize(24, 24).setOrigin(0.5);
+          starContainer.add(starObj);
+        })
+        .catch(error => {
+          console.warn('Failed to load profile picture:', error);
+          // Keep using the star image (already created)
+        });
+    }
+  }
 
+  // Add elements to container
   starContainer.add([starObj, nicknameObj]);
 
   scene.physics.add.collider(scene.star, platforms);
@@ -200,10 +286,77 @@ function addBomb(data) {
 
   let scene = this.myGame.scene.getScene("default");
 
-  const dingSnd = scene.sound.add("ding");
+  const dingSnd = scene.sound.add("ding").setVolume(0.1);
   dingSnd.play();
 
-  scene.bomb = scene.physics.add.image(Phaser.Math.Between(0, 800), 0, "bomb");
+  // Extract nickname (fallback if missing)
+  const nickname = data?.user?.nickname || "Guest";
 
-  scene.physics.add.collider(scene.bomb, platforms);
+  // Create a physics-enabled container
+  const bombContainer = scene.add.container(Phaser.Math.Between(0, 800), 0);
+  scene.physics.add.existing(bombContainer);
+  bombContainer.body.setSize(32, 32);
+  bombContainer.body.setCollideWorldBounds(true);
+  bombContainer.body.setVelocity(50, 50);
+  bombContainer.body.setBounce(0.7, 0.7);
+
+  // Add placeholder bomb image first
+  let bombImage = scene.add.image(0, 0, "bomb").setOrigin(0.5).setDisplaySize(32, 32);
+
+  // Add nickname text above the image
+  const nicknameText = scene.add.text(0, -20, nickname.slice(0, 11), {
+    fontSize: "12px",
+    fill: "#ffffff",
+    stroke: "#000000",
+    strokeThickness: 3,
+  }).setOrigin(0.5);
+
+  bombContainer.add([bombImage, nicknameText]);
+
+  // Handle gift image replacement
+  let giftUrl = null;
+  try {
+    if (data.giftDetails?.giftImage?.giftPictureUrl) {
+      giftUrl = String(data.giftDetails.giftImage.giftPictureUrl).replace(/[`'\"]/g, '').trim();
+    }
+  } catch (_) {}
+
+  if (giftUrl && data.giftId) {
+    const giftKey = 'gift_' + data.giftId;
+
+    if (scene.textures.exists(giftKey)) {
+      // Already loaded — replace immediately
+      bombImage.setTexture(giftKey).setDisplaySize(32, 32);
+    } else {
+      // Load dynamically
+      if (giftImageCache[giftKey] !== 'loading') {
+        giftImageCache[giftKey] = 'loading';
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () {
+          try {
+            if (!scene.textures.exists(giftKey)) {
+              scene.textures.addImage(giftKey, img);
+            }
+            giftImageCache[giftKey] = 'loaded';
+            bombImage.setTexture(giftKey).setDisplaySize(32, 32);
+          } catch (e) {
+            console.warn('Error applying gift texture', e);
+            giftImageCache[giftKey] = 'error';
+          }
+        };
+        img.onerror = function () {
+          console.warn('Failed to load gift image for giftId', data.giftId);
+          giftImageCache[giftKey] = 'error';
+        };
+        img.src = giftUrl;
+      }
+    }
+  }
+
+  // Add collision with platforms
+  scene.physics.add.collider(bombContainer, platforms);
+
+   scene.physics.add.overlap(player, bombContainer, collectGift, null, this);
 }
+
