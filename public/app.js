@@ -206,7 +206,13 @@ connection.on("like", (msg) => {
 // Member join
 let joinMsgDelay = 0;
 const recentGiftCache = new Map();
+
 connection.on("member", (msg) => {
+  console.log("===> member: ", msg);
+  
+  // Run addMember functions  
+  addMembers(msg);
+
   if (window.settings.showJoins === "0") return;
 
   let addDelay = 250;
