@@ -175,6 +175,7 @@ function addGiftItem(data) {
 
 // viewer stats
 connection.on("roomUser", (msg) => {
+  console.log("===> roomUser: ", msg);
   if (typeof msg.viewerCount === "number") {
     viewerCount = msg.viewerCount;
     updateRoomStats();
@@ -184,10 +185,9 @@ connection.on("roomUser", (msg) => {
 // like stats
 connection.on("like", (msg) => {
   console.log("===> like: ", msg);
-  if (typeof msg.totalLikeCount === "number") {
-    // Drop a star randomly in Phaser
-    addStar(msg);
+  addStar(msg);
 
+  if (typeof msg.totalLikeCount === "number") {
     likeCount = msg.totalLikeCount;
     updateRoomStats();
   }
@@ -233,11 +233,11 @@ connection.on("chat", (msg) => {
   addChatItem("", msg, msg.comment);
 });
 
-// New gift received
+// New gift received with fixes
 connection.on("gift", (data) => {
   console.log("===> gift: ", data);
 
-  // Ignore in-progress streaks (TikTok sends two events)
+  // For streak gifts, only process when complete
   if (data.giftType === 1 && data.repeatEnd === 0) return;
 
   // Only process gifts that cost diamonds
@@ -249,10 +249,9 @@ connection.on("gift", (data) => {
 
     // 🔥 Drop one bomb per repeatCount
     for (let i = 0; i < data.repeatCount; i++) {
-      // Add small stagger to spacing or delay if needed
       setTimeout(() => {
         addBomb(data);
-      }, i * 150); // 150ms between bombs (tweak as you like)
+      }, i * 150);
     }
   }
 

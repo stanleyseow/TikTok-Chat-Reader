@@ -281,8 +281,8 @@ function addStar(msg) {
   scene.physics.add.overlap(player, scene.star, collectStar, null, this);
 }
 
-function addBomb(data) {
-  console.log("Adding bomb ", data);
+function addBomb(msg) {
+  console.log("Adding bomb ", msg);
 
   let scene = this.myGame.scene.getScene("default");
 
@@ -290,7 +290,7 @@ function addBomb(data) {
   dingSnd.play();
 
   // Extract nickname (fallback if missing)
-  const nickname = data?.user?.nickname || "Guest";
+  const nickname = msg?.user?.nickname || "Guest";
 
   // Create a physics-enabled container
   const bombContainer = scene.add.container(Phaser.Math.Between(0, 800), 0);
@@ -316,13 +316,13 @@ function addBomb(data) {
   // Handle gift image replacement
   let giftUrl = null;
   try {
-    if (data.giftDetails?.giftImage?.giftPictureUrl) {
-      giftUrl = String(data.giftDetails.giftImage.giftPictureUrl).replace(/[`'\"]/g, '').trim();
+    if (msg.giftDetails?.giftImage?.giftPictureUrl) {
+      giftUrl = String(msg.giftDetails.giftImage.giftPictureUrl).replace(/[`'\"]/g, '').trim();
     }
   } catch (_) {}
 
-  if (giftUrl && data.giftId) {
-    const giftKey = 'gift_' + data.giftId;
+  if (giftUrl && msg.giftId) {
+    const giftKey = 'gift_' + msg.giftId;
 
     if (scene.textures.exists(giftKey)) {
       // Already loaded — replace immediately
@@ -346,7 +346,7 @@ function addBomb(data) {
           }
         };
         img.onerror = function () {
-          console.warn('Failed to load gift image for giftId', data.giftId);
+          console.warn('Failed to load gift image for giftId', msg.giftId);
           giftImageCache[giftKey] = 'error';
         };
         img.src = giftUrl;
