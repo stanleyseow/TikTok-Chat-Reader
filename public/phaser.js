@@ -579,12 +579,14 @@ function addMembers(msg) {
   const randomCharNum = Phaser.Math.Between(1, 8);
   const charSprite = `char${randomCharNum}`;
   console.log("charSprite: ", charSprite);
-  const charSpriteObj = scene.add.sprite(0, 0, charSprite).setOrigin(0.5).play(charSprite + "-down")
+  const charSpriteObj = scene.add.sprite(0, 0, char8).setOrigin(0.5)
+  charSpriteObj.play(charSprite + "-down")
   charSpriteObj.setVisible(true);
   
   // Add nickname and character to container
   charContainer.add([nicknameText, charSpriteObj]);
 
+    // Setup tween, walk to 400, switch animations onYoyo
     scene.tweens.add({
     targets: charContainer,
     y: 400,
@@ -593,9 +595,11 @@ function addMembers(msg) {
     duration: 4000,
     repeat: -1,
     onYoyo: () => {
+      console.log("Yoyo");
       charSpriteObj.play(charSprite + "-up");
     },
     onRepeat: () => {
+      console.log("Repeat");
       charSpriteObj.play(charSprite + "-down");
     },
   });
